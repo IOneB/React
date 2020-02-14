@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JavaScriptEngineSwitcher.ChakraCore;
+using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using React.AspNet;
 
 namespace React
 {
@@ -14,27 +18,18 @@ namespace React
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDirectoryBrowser();
+            services.AddMemoryCache()
+                .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
+                .AddReact()
+                .AddJsEngineSwitcher(opt => opt.DefaultEngineName = ChakraCoreJsEngine.EngineName)
+                .AddChakraCore();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseFileServer(true);
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
-            });
+            app.UseReact(config => { })
+                .UseDefaultFiles()
+                .UseStaticFiles();
         }
     }
 }
